@@ -1,0 +1,1 @@
+Connecting SSMS with Eclipse using JDBC.
