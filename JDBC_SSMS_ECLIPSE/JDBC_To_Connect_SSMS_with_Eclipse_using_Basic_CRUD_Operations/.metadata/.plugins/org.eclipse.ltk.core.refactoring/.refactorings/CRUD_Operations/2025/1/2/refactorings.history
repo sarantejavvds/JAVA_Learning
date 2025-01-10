@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename package &apos;gaming_data_CRUD&apos; to &apos;gaming_data_CRUD_v1&apos;&#x0D;&#x0A;- Original project: &apos;CRUD_Operations&apos;&#x0D;&#x0A;- Original element: &apos;CRUD_Operations/src/gaming_data_CRUD&apos;&#x0D;&#x0A;- Renamed element: &apos;CRUD_Operations/src/gaming_data_CRUD_v1&apos;&#x0D;&#x0A;- Update references to refactored element&#x0D;&#x0A;- Update textual occurrences in comments and strings" description="Rename package &apos;gaming_data_CRUD&apos;" flags="589830" hierarchical="false" id="org.eclipse.jdt.ui.rename.package" input="/src&lt;gaming_data_CRUD" name="gaming_data_CRUD_v1" qualified="false" references="true" stamp="1736483543591" textual="false" version="1.0"/>
+</session>

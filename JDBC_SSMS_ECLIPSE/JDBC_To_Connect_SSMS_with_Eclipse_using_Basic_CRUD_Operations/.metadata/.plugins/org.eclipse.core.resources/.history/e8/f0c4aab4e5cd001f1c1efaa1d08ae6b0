@@ -1,0 +1,225 @@
+package gaming_data_CRUD;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+/** *
+ * This version currently don't use where clause for Select(Retrieve) operation, so Every Record will be Retrieved.
+ * 
+ * (CAUTION !!! )And the Delete operation will remove Entire Records in the table, if you choose "YES" option in Runtime, So choose carefully.
+ * 
+ * Runtime input for Gamer_id(since it was a primary key) will throw Exceptions, if the Data was already existed in the Table
+ * **/ 
+
+public class SSMS_Connection 
+{
+
+	private static Connection connect;
+	
+	private static final String URL = "jdbc:sqlserver://DESKTOP-2ROPMHT;databaseName=JDBC_Connects_Eclipse_and_SSMS;integratedSecurity=true;encrypt=false";
+	
+	private static final String USER = "DESKTOP-2ROPMHT";
+	
+	private static String PASSWORD;
+	
+	public SSMS_Connection() 
+	{
+		// TODO Auto-generated constructor stub
+		System.out.println("SSMS_Connection class's Constructor is Executed \n");
+		
+	}
+	
+	// Set the password for the database connection
+	public void setPassword(String password) 
+	{
+        PASSWORD = password;
+    }
+	
+	// Method to establish and return a connection to the SQL Server database
+	public static Connection get_Connection() throws SQLException
+	{
+		if(connect == null || connect.isClosed()) // Check if the connection is closed
+		{
+			try
+			{ 
+			    connect = DriverManager.getConnection(URL, USER, PASSWORD); // Passing URL, USER, Password to make Connction with SSMS
+			    
+				System.out.println(" Database Connection has been Established Successfully 😁 \n");
+			}
+			catch(SQLException e)
+			{
+				e.printStackTrace();
+				
+				System.err.println("Failed to Connect to Database 😥");
+				
+				throw e;
+			}
+			
+		}
+		return connect;
+	}
+	
+	// Method to check if a Gamer_ID already exists in the database, because each Gamer_id should be unique.
+	public boolean is_GAMER_ID_exists(int id)
+	{
+		boolean exists = false;
+		
+		try
+		{
+			String fetching_count_of_same_id = "SELECT COUNT(*) FROM GAMING WHERE Gamer_id = ?";
+			
+			PreparedStatement prep = connect.prepareStatement(fetching_count_of_same_id);
+			
+			prep.setInt(1, id);
+			
+			ResultSet record_result = prep.executeQuery();
+			
+			if(record_result.next())
+			{
+				exists = (record_result.getInt(1) > 0); // Checking if count is greater than 0 or not.
+			}
+			
+			record_result.close();
+			
+			prep.close();
+		}
+		catch(SQLException e)
+		{
+			e.printStackTrace();
+		}
+		
+		return exists;
+	}
+	
+	// Method to insert new gamer data into the database
+	public void INSERT_Gamer_Data(int ID, String Name, String Game, int Age, String Country, double Money)
+	{
+		String insert_query = "INSERT INTO GAMING(Gamer_id, Gamer_Name, Game_Play, Age, Country, Currency_in_Game) VALUES (?,?,?,?,?,?)";
+		
+		try(Connection connect = SSMS_Connection.get_Connection(); // Make sure to handle the connection properly
+			PreparedStatement prep = connect.prepareStatement(insert_query);
+			)
+		{
+			prep.setInt(1, ID);
+			prep.setString(2, Name);
+			prep.setString(3, Game);
+			prep.setInt(4, Age);
+			prep.setString(5, Country);
+			prep.setDouble(6, Money);
+			
+			prep.executeUpdate();
+			
+			System.out.println("Gamer Data Inserted Successfully 😊!");
+			
+			prep.close();
+		}
+		catch(SQLException e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	// Method to select and retrieve all gamer data from the database
+	public void Select_All_Gamer_Data()
+	{
+		try
+		{
+			String select_query = "SELECT * from GAMING";
+			
+			Connection connect = get_Connection(); // Make sure to handle the connection properly
+			
+			PreparedStatement prep = connect.prepareStatement(select_query);
+			
+			ResultSet table_data = prep.executeQuery();
+			
+			while(table_data.next()) // To fetch all records in the Table
+			{
+				System.out.println("Gamer ID: " + table_data.getInt("Gamer_id") + 
+                                   ", Name: " + table_data.getString("Gamer_Name") + 
+                                   ", Game Play: " + table_data.getString("Game_Play") + 
+                                   ", Age: " + table_data.getInt("Age") + 
+                                   ", Country: " + table_data.getString("Country").trim() +
+                                   ", Currency: " + table_data.getDouble("Currency_in_Game")
+                                   );
+			}
+			System.out.println("\n Gamers Data Retrieved Successfully 😊!");
+			
+			prep.close();
+			
+			table_data.close();
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	// Method to update the data of a specific gamer, based on id only.
+	public void UPDATE_Gamer_Data(long ID, String Name, String Game, int Age, String Country, double Money) throws SQLException
+	{
+        try
+        {
+        	// Validate Age
+            if (Age <= 0 || Age > 120) 
+            {
+                throw new IllegalArgumentException("Invalid Age! Age must be between 1 and 120.");
+            }
+        	String update_query = "UPDATE GAMING SET Gamer_Name = ?, Game_Play = ?, Age = ?, Country = ?, Currency_in_Game = ? WHERE Gamer_id = ?";
+        	
+        	Connection connect = SSMS_Connection.get_Connection(); // Make sure to handle the connection properly
+        	
+        	PreparedStatement prep = connect.prepareStatement(update_query);
+        	
+        	//prep.setInt(1, ID);
+        	prep.setString(1, Name);
+        	prep.setString(2, Game);
+        	prep.setInt(3, Age);
+        	prep.setString(4, Country);
+        	prep.setDouble(5, Money);
+        	prep.setLong(6, ID);     // The condition for the update (where the Gamer_id matches)
+        		
+        	int rows_Affected = prep.executeUpdate();
+        	
+        	if(rows_Affected > 0)
+        	{
+        	    System.out.println("Record Updated Successfully!");
+        	}
+        	else
+        	{
+        	    System.err.println("No Record found with ID : " + ID);
+        	}
+        }
+        catch(SQLException e)
+        {
+        	System.err.println("SQL Error: " + e.getMessage());
+        	
+        	e.printStackTrace();
+        }
+	}
+	
+	// Method to delete all records from the database (CAUTION: removes all data)
+	public void Delete_All_Gamer_Data() // previously assumed to pass Gamer_id as it's parameter if using where clause.
+	{
+		String delete_query = "DELETE FROM GAMING "; //WHERE ID = ?";
+		// No "WHERE clause" means this Method will remove entire rows in the table record by record. 
+		
+		try(Connection connect = SSMS_Connection.get_Connection();
+			PreparedStatement prep = connect.prepareStatement(delete_query);)
+		{
+			// prep.setInt(1, id); // Will only focus on Gamer_id column's input Data
+			
+			int rows_Affected = prep.executeUpdate(); // storing the count of rows that got Affected.
+			
+			System.out.println(rows_Affected + " record(s) deleted Successfully 😅");
+		}
+		catch(SQLException e) // catches if any SQLException occurs
+		{
+			e.printStackTrace();
+		}
+	}
+
+	
+} // End of "SSMS_Connection" class

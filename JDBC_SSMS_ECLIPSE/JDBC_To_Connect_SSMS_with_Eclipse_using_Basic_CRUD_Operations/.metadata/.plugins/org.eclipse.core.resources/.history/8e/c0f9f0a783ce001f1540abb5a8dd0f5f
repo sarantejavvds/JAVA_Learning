@@ -1,0 +1,224 @@
+
+package gaming_data_CRUD;
+
+import java.util.Scanner;
+import java.sql.SQLException;
+
+
+/** *
+ * This Project performs basic CRUD operations on a Table named "Gaming" present in a database in SSMS.
+ * 
+ * Provide Password of your Database in Runtime to see the CRUD MENU.
+ * 
+ * 
+ * **/
+
+public class Performs_CRUD_on_Gaming_Table  
+{
+
+	public Performs_CRUD_on_Gaming_Table() 
+	{
+		// TODO Auto-generated constructor stub
+		System.out.println("Performs_CRUD_on_Gaming_Table class's Constructor is Executed \n");
+	}
+
+	/*** @param args * @throws SQLException */
+	public static void main(String[] args) throws SQLException 
+	{
+		// TODO Auto-generated method stub
+		//System.out.println("Hi");
+		Performs_CRUD_on_Gaming_Table crud_main = new Performs_CRUD_on_Gaming_Table();
+		
+		SSMS_Connection obj_crud_operations = new SSMS_Connection();
+		
+		//obj_crud_operations.INSERT_Gamer_Data(1, "Saran", "ToramOnline", 24, "India", 100000); // Example to check insert operation is working in compile time or not (Hard coded Data)
+		
+		Scanner scanner = new Scanner(System.in);
+	/*	
+		// for password to authenticate database access
+		// Loop until correct password is provided
+	    while(true) 
+		{
+	        try 
+			{
+	            System.out.print("Enter Password for Database: ");
+	            String password = scanner.next();  // Read password from user
+	            obj_crud_operations.setPassword(password); // Set the password in SSMS_Connection
+
+	            // Try to establish connection with the given password
+	            SSMS_Connection.get_Connection();  // This will throw an exception if password is incorrect
+	            break; // If connection is successful, break the loop
+	            
+	        } 
+	        catch(SQLException e) 
+	        {
+	            // If an SQLException occurs (incorrect password), print an error and re-prompt for password
+	            System.err.println("Error: Incorrect password. Please try again.");
+	        }
+	    }
+		
+		*/
+        // Start of the CRUD Menu
+		while(true)
+		{
+			System.out.print("\n---CRUD MENU---\n");
+			System.out.print(" s ==> Select to Retrieve the Entire Table Data \n");
+			System.out.print(" i ==> Insert the Record \n");
+			System.out.print(" u ==> Update the Choosen Record \n");
+			System.out.print(" d ==> Delete the Entire Records \n");
+			System.out.print(" e ==> Exit \n");
+			
+			System.out.print("CHOOSE any option from CRUD menu : ");
+			char choice = scanner.next().charAt(0); // Read user choice
+			
+			// Check for valid menu option
+			if((choice >= 'a') && (choice <= 'z'))
+			{
+				switch(choice)
+				{
+				    case 's': /* To Select */
+				    	      System.out.println("\n Retrieving all records in the Table. \n");
+				    	      
+				    	      obj_crud_operations.Select_All_Gamer_Data();
+				              break;
+				              
+				    case 'i': /* To Insert */     
+				    	      try
+				    	      {
+				    	          System.out.print("Enter Gamer ID: ");
+                                  int id = scanner.nextInt();
+                                  scanner.nextLine();
+                                  
+                                  if(obj_crud_operations.is_GAMER_ID_exists(id))
+                                  {
+                                	  throw new RuntimeException("Error : Gamer_id " + id + " already exists in the table");
+                                  }
+				    	          System.out.print("Enter Gamer Name: ");
+	                              String name = scanner.nextLine();
+	                    
+	                              System.out.print("Enter Game Play: ");
+	                              String game = scanner.nextLine();
+	                    
+	                              System.out.print("Enter Age: ");
+	                              int age = scanner.nextInt();
+	                              scanner.nextLine();
+	                    
+	                              System.out.print("Enter Country: ");
+	                              String country = scanner.nextLine();	                              
+	                    
+	                              System.out.print("Enter Currency in Game: ");
+	                              double currency = scanner.nextDouble();
+	                              scanner.nextLine();
+	                          
+				    	          obj_crud_operations.INSERT_Gamer_Data(id, name, game, age, country, currency);
+				    	      }
+				    	      catch(RuntimeException RE)				    	   
+				    	      {
+				    	    	  System.err.println(RE.getMessage());
+				    	      }
+				    	      catch(Exception e)
+				    	      {
+				    	    	  e.printStackTrace();
+				    	      }
+			                  break;
+			                  
+				    case 'u': // To Update
+		                      // Input and update record
+				    	      long Id;
+				    	      int Age;
+				    	      String Name, Game, Country;
+				    	      double Money;
+				    	      
+				    	      System.out.println("Enter the ID of Player Data You want to update : ");
+				    	      Id = scanner.nextLong();
+				    	      scanner.nextLine();
+				    	      
+				    	      System.out.println("Enter the new Name of Gamer : ");
+				    	      Name = scanner.nextLine();
+				    	      
+				    	      System.out.println("Enter the New Game Name : ");
+				    	      Game = scanner.nextLine();
+				    	      
+				    	      System.out.println("Enter the Gamer's New Age : ");
+				    	      Age = scanner.nextInt();
+				    	      scanner.nextLine();
+				    	      // Validate Age before moving forward
+				    	      if (Age <= 0 || Age > 120) 
+				    	      {
+				    	          System.out.println("Invalid Age! Age must be between 1 and 120.");
+				    	          return; // Exit the method if age is invalid
+				    	      }
+
+				    	      
+				    	      System.out.println("Enter the New Country Name : ");
+				    	      Country = scanner.nextLine();
+				    	      
+				    	      System.out.println("Enter the New Currency : ");
+				    	      Money = scanner.nextDouble();
+				    	      scanner.nextLine();
+				    	      
+				    	      try
+				    	      {
+				    	         obj_crud_operations.UPDATE_Gamer_Data(Id, Name, Game, Age, Country, Money);
+				    	      
+		                         System.out.println("Updating a Gamer Data.\n");
+		                      }
+				    	      catch(SQLException e) 
+				    	      {
+				    	    	  System.err.println("Error updating data: " + e.getMessage());
+				    	    	  
+				    	    	  throw e;
+				    	      }
+				    	      /*finally 
+				    	      {
+				    	            scanner.close();  // close the scanner to avoid resource leak
+				    	      }*/
+			                  break;
+			                  
+				    case 'd': // To Delete
+				    	      System.out.println("You really want to delete all records in the Table? (YES/NO) : ");
+				    	      
+				    	      String user_Input = scanner.next();
+				    	      
+				    	      if(user_Input.equalsIgnoreCase("YES")) // "equalIgnoreCase" ensures that "YES"/"yes"/"Yes"... all are same.
+				    	      {
+				    	    	  obj_crud_operations.Delete_All_Gamer_Data();
+				    	    	  
+				    	    	  System.out.println("All Records have been Successfully Deleted");
+				    	      }
+				    	      else if(user_Input.equalsIgnoreCase("NO")) // "equalIgnoreCase" ensures that "NO"/"no"/"No"/"nO"... all are same.
+				              {
+				            	  System.out.println("No Delete Operation Has been Happened");
+				              }
+				    	      else
+				    	      {
+				    	    	  System.err.println("Invalid Input. Please Enter either yes or no");			    	    	 
+				    	      }
+				    	      //scanner.close();
+			                  break;
+			                  
+				    case 'e': /* To Exit */
+				    	      System.out.println("Exiting from CRUD Menu. \n");
+				    	      
+				    	      obj_crud_operations.closeConnection();
+				    	      
+				    	      scanner.close(); // Close the scanner to avoid resource leak	    	     
+				    	      
+				    	      System.exit(0);
+			                  break;
+			                 
+			        default : System.err.println("Invalid Option ! Choose the Correct Necessary Operation.");
+				}
+			}
+			else
+			{
+				System.err.println("Invalid Input! Please enter a character from a to z.");
+			}
+			
+		} // End of while loop for CRUD MENU. 
+		
+		
+	} // End of main() method
+
+} // End of "Performs_CRUD_on_Gaming_Table" class
+
