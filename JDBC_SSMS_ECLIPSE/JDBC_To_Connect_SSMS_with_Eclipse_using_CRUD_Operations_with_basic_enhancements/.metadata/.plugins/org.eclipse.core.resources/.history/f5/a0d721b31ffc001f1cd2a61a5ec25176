@@ -1,0 +1,809 @@
+package gaming_data_CRUD_v2;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.sql.Connection;
+import java.sql.SQLException;
+
+/**
+ * * This Project performs basic CRUD operations on any selected Table present in a database in SSMS.
+ * 
+ * In this project, The CRUD operations are used on a Table that has primary key.
+ *
+ * In this project, we also created option to create new Table.
+ **/
+
+public class Performs_CRUD_on_Gaming_Table
+{
+
+	public Performs_CRUD_on_Gaming_Table()
+	{
+		/* TODO Auto-generated constructor stub */
+		System.out.println("Performs_CRUD_on_Gaming_Table class's Constructor is Executed \n");
+	}
+
+	/***
+	 * @param args
+	 * @throws Throwable
+	 */
+	public static void main(String[] args) throws Throwable
+	{
+		/* TODO Auto-generated method stub */
+		long start_Time, end_Time, elapsed_Time, hours, minutes, seconds, milli_seconds;
+
+		start_Time = System.currentTimeMillis(); /* Capture start time */
+
+		Performs_CRUD_on_Gaming_Table crud_main = new Performs_CRUD_on_Gaming_Table();
+
+		SSMS_Connection obj_crud_operations = new SSMS_Connection();
+
+		Connection connect = SSMS_Connection.get_Connection(); /* Trying to establish the connection Immediately. */
+
+		/* obj_crud_operations.INSERT_Gamer_Data(1, "Saran", "ToramOnline", 24, "India", 100000); */ /* Example to check insert operation is working in compile time or not (Hard coded Data) */
+
+		try
+		{
+			obj_crud_operations.Display_All_Tables_in_Database(); /* Displays all available Tables in the Database after successful Connection. */
+		}
+		catch (Exception e)
+		{
+			System.err.println("Failed to establish a connection to the Database.");
+
+			System.err.println("Please check the Database password in Environment Variable.");
+
+			System.exit(1);
+		}
+
+		Scanner scanner = new Scanner(System.in); /* Declaring "scanner" object to read Runtime input Data from JAVA Console */
+
+		while (true) /* To continuously ask until Correct Table is given */
+		{
+			if(connect == null || connect.isClosed())
+			{
+				SSMS_Connection.get_Connection(); /* Ensure connection is active */
+			}
+			/* Ask the user to input a Table Name */
+			System.out.print("Enter the name of the table you want to work with: ");
+			String TABLE_Name = scanner.next().trim();
+			scanner.nextLine();
+
+			/* Validate if the Table is exist in database or not */
+			if(!obj_crud_operations.is_Table_exists(TABLE_Name))
+			{
+				System.err.println("Error : Table '" + TABLE_Name + "' doesn't Exists in the Current Database.");
+
+				System.out.print("Again .... ");
+
+				continue;
+			}
+
+			System.out.println("Successfully selected Table: " + TABLE_Name);
+
+			/* Start of the CRUD Menu */
+			while (true)
+			{
+				System.out.print("\n---CRUD MENU---\n");
+				System.out.print(" c ==> Create a New Table.\n");
+				System.out.print(" s ==> Select to Retrieve the Entire Table Data or Specific Record(s).\n");
+				System.out.print(" i ==> Insert the Record.\n");
+				System.out.print(" u ==> Update the Choosen Value in the Column.\n");
+				System.out.print(" d ==> Delete the Choosen Record(s) or Entire Records.\n");
+				System.out.print(" e ==> Exit \n");
+
+				System.out.print("CHOOSE any option from CRUD menu : ");
+				String single_character_input = scanner.next(); /* Read user choice of CRUD Menu. */
+				scanner.nextLine();
+
+				/* Check if the input is a single character */
+				if(single_character_input.length() == 1)
+				{
+					char choice = single_character_input.charAt(0); /* Extract the character */
+
+					/* Check for valid menu option */
+					if((choice >= 'a') && (choice <= 'z'))
+					{
+						switch(choice)
+						{
+							case 'c': /* To CREATE Table */
+								List<String> columns = new ArrayList<>();
+
+								String primaryKey = null, foreignKey = null, referenced_Table = null, referenced_Column = null;
+
+								boolean add_More_Columns = true;
+
+								ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+
+								System.out.print("Enter the Name of the New Table : ");
+								String new_Table_Name = scanner.nextLine().trim(); /* Provide New Table Name */
+
+								try
+								{
+									if(obj_crud_operations.is_Table_exists(new_Table_Name))
+									{
+										System.err.println("\nError: Table '" + new_Table_Name + "' already exists in the Database");
+
+										scheduler.schedule(() ->
+										{
+										}, 2, TimeUnit.SECONDS);
+										scheduler.shutdown();
+
+									}
+									else
+									{
+										/* To add columns continuously until add_More_Columns is false or No */
+										while (add_More_Columns)
+										{
+											System.out.print("Enter column name: ");
+											String column_Name = scanner.nextLine();
+
+											/* if(columns.contains(column_Name)) */
+											if(columns.stream().anyMatch(col -> col.split(" ")[0].equalsIgnoreCase(column_Name))) /* Checking If given column name is already exists or not */
+											{
+												System.err.println("Warning: Duplicate column name detected! Column was not Added. Please enter a unique column name.");
+
+												continue;
+											}
+
+											System.out.print("Enter any data type for " + column_Name + "(Example: INT, BIGINT, FLOAT, DOUBLE, DATE, DATETIME, CHAR(100), NVARCHAR(100), etc. ): ");
+											String dataType = scanner.nextLine();
+
+											String column_Definition = column_Name + " " + dataType; /* Combination of Column Name and it's respective Datatye */
+											columns.add(column_Definition);
+
+											/* Check if column already has PK or FK */
+//							                if (column_Name.equals(primaryKey)) {
+//							                    System.out.println("✔ This column is already set as a Primary Key.");
+//							                } else if (column_Name.equals(foreignKey)) {
+//							                    System.out.println("✔ This column is already set as a Foreign Key.");
+//							                } else
+											
+											if(primaryKey != null)
+											{
+												//final String _primaryKey = primaryKey;
+												
+												System.err.println("Primary key already set for column: " + primaryKey);
+												
+											}
+											if(primaryKey == null)
+											{
+												System.out.print("Do you want to set this column as PRIMARY KEY? (yes/no): ");
+												String is_PrimaryKey = scanner.nextLine();
+
+												if(is_PrimaryKey.equalsIgnoreCase("yes")) /* "equalIgnoreCase" ensures that "YES"/"yes"/"Yes"/"yEs"..... all are same. */
+												{
+													/* if(obj_crud_operations.is_PrimaryKey_Referenced_in_Other_Tables(column_Name)) { System.err.println("Error: This Column is already referenced as a Foreign Key in other tables. Cannot set as Primary Key."); } else { primaryKey = column_Name; } */
+													if(obj_crud_operations.is_PrimaryKey_Matching_Existing_ForeignKey(column_Name, dataType))
+													{
+														System.out.println("✔ This Primary Key is already referenced and Matches with in another table as a Foreign Key");
+													}
+													primaryKey = column_Name;
+
+													System.out.println("✔ Primary Key set for column: " + column_Name);
+
+												}
+											}
+											else
+											{
+												if(foreignKey != null)
+												{
+													System.out.println("Foreign key already set for column: " + foreignKey);
+												}
+												if(foreignKey == null)
+												{
+													System.out.print("Do you want to set this column as FOREIGN KEY? (yes/no): ");
+													String is_ForeignKey = scanner.next().trim(); 
+													scanner.nextLine();
+
+													if(is_ForeignKey.equalsIgnoreCase("yes")) /* "equalIgnoreCase" ensures that "YES"/"yes"/"Yes"/"yEs"..... all are same. */
+													{
+														foreignKey = column_Name;
+
+														System.out.print("Enter the referenced table name: ");
+														referenced_Table = scanner.nextLine().trim();
+
+														System.out.print("Enter the referenced column name: ");
+														referenced_Column = scanner.nextLine().trim();
+
+														/* Validate referenced column, only if inputs are available. */
+														if(!referenced_Table.isEmpty() && !referenced_Column.isEmpty())
+														{
+															if(!obj_crud_operations.is_Referenced_Column_exists_in_Referenced_Table(referenced_Column, referenced_Table)) /* Validate if the referenced column exists and is a Primary Key */
+															{
+																System.err.println("Error: Referenced column does not exist in the referenced table or is not a primary key. Try again.");
+
+																foreignKey = null; /* Reset */
+
+																referenced_Table = null;
+
+																referenced_Column = null;
+															}
+															else if(!obj_crud_operations.is_ForeignKey_Matching_Existing_PrimaryKey(referenced_Column, referenced_Table, column_Name, TABLE_Name)) /* Validate if this ForeignKey column references a Primary Key */
+															{
+																System.err.println("Error: Foreign Key must reference a Primary Key Column. Try again.");
+
+																foreignKey = null;
+
+																referenced_Table = null;
+
+																referenced_Column = null;
+															}
+
+														}
+														else
+														{
+															System.err.println("Error: Foreign Key requires a referenced table and column.");
+
+															foreignKey = null;
+														}
+													}
+												}
+											}
+
+											System.out.print("Do you want to add another column? (yes/no): ");
+											add_More_Columns = scanner.nextLine().equalsIgnoreCase("yes"); /* "equalIgnoreCase" ensures that "YES"/ "yes"/ "Yes"/ "yEs".... . all are same. */
+
+										} /* End of While loop */
+
+										obj_crud_operations.CREATE_NEW_Table(new_Table_Name, columns, primaryKey, foreignKey, referenced_Table, referenced_Column);
+									}
+								}
+								catch (SQLException e)
+								{
+									System.err.println("Error during Table Creation: " + e.getMessage());
+								}
+								break;			
+
+								
+								
+							case 'm': /* To CREATE Table */
+								List<String> columns1 = new ArrayList<>();
+
+								String primaryKey1 = null, foreignKey1 = null, referenced_Table1 = null, referenced_Column1 = null;
+
+								boolean add_More_Columns1 = true;
+
+								ScheduledExecutorService scheduler1 = Executors.newSingleThreadScheduledExecutor();
+
+								System.out.print("Enter the Name of the New Table : ");
+								String new_Table_Name1 = scanner.nextLine().trim(); /* Provide New Table Name */
+
+								try
+								{
+									if(obj_crud_operations.is_Table_exists(new_Table_Name1))
+									{
+										System.err.println("\nError: Table '" + new_Table_Name1 + "' already exists in the Database");
+
+										scheduler1.schedule(() ->
+										{
+										}, 2, TimeUnit.SECONDS);
+										scheduler1.shutdown();
+
+									}
+									else
+									{
+										/* To add columns continuously until add_More_Columns is false or No */
+										while (add_More_Columns1)
+										{
+											System.out.print("Enter column name: ");
+											String column_Name = scanner.nextLine();
+
+											/* if(columns.contains(column_Name)) */
+											if(columns1.stream().anyMatch(col -> col.split(" ")[0].equalsIgnoreCase(column_Name))) /* Checking If given column name is already exists or not */
+											{
+												System.err.println("Warning: Duplicate column name detected! Column was not Added. Please enter a unique column name.");
+
+												continue;
+											}
+
+											System.out.print("Enter any data type for " + column_Name + "(Example: INT, BIGINT, FLOAT, DOUBLE, DATE, DATETIME, CHAR(100), NVARCHAR(100), etc. ): ");
+											String dataType = scanner.nextLine();
+
+											String column_Definition = column_Name + " " + dataType; /* Combination of Column Name and it's respective Datatye */
+											columns1.add(column_Definition);
+
+											/* Check if column already has PK or FK */
+//							                if (column_Name.equals(primaryKey)) {
+//							                    System.out.println("✔ This column is already set as a Primary Key.");
+//							                } else if (column_Name.equals(foreignKey)) {
+//							                    System.out.println("✔ This column is already set as a Foreign Key.");
+//							                } else
+											
+											if(primaryKey1 != null)
+											{
+												//final String _primaryKey = primaryKey;
+												
+												System.err.println("Primary key already set for column: " + primaryKey1);
+												
+											}
+											if(primaryKey1 == null)
+											{
+												System.out.print("Do you want to set this column as PRIMARY KEY? (yes/no): ");
+												String is_PrimaryKey = scanner.nextLine();
+
+												if(is_PrimaryKey.equalsIgnoreCase("yes")) /* "equalIgnoreCase" ensures that "YES"/"yes"/"Yes"/"yEs"..... all are same. */
+												{
+													/* if(obj_crud_operations.is_PrimaryKey_Referenced_in_Other_Tables(column_Name)) { System.err.println("Error: This Column is already referenced as a Foreign Key in other tables. Cannot set as Primary Key."); } else { primaryKey = column_Name; } */
+													if(obj_crud_operations.is_PrimaryKey_Matching_Existing_ForeignKey(column_Name, dataType))
+													{
+														System.out.println("✔ This Primary Key is already referenced and Matches with in another table as a Foreign Key");
+													}
+													primaryKey = column_Name;
+
+													System.out.println("✔ Primary Key set for column: " + column_Name);
+
+												}
+											}
+											else
+											{
+												if(foreignKey1 != null)
+												{
+													System.out.println("Foreign key already set for column: " + foreignKey1);
+												}
+												if(foreignKey1 == null)
+												{
+													System.out.print("Do you want to set this column as FOREIGN KEY? (yes/no): ");
+													String is_ForeignKey = scanner.next().trim(); 
+													scanner.nextLine();
+
+													if(is_ForeignKey.equalsIgnoreCase("yes")) /* "equalIgnoreCase" ensures that "YES"/"yes"/"Yes"/"yEs"..... all are same. */
+													{
+														foreignKey = column_Name;
+
+														System.out.print("Enter the referenced table name: ");
+														referenced_Table = scanner.nextLine().trim();
+
+														System.out.print("Enter the referenced column name: ");
+														referenced_Column = scanner.nextLine().trim();
+
+														/* Validate referenced column, only if inputs are available. */
+														if(!referenced_Table.isEmpty() && !referenced_Column.isEmpty())
+														{
+															if(!obj_crud_operations.is_Referenced_Column_exists_in_Referenced_Table(referenced_Column, referenced_Table)) /* Validate if the referenced column exists and is a Primary Key */
+															{
+																System.err.println("Error: Referenced column does not exist in the referenced table or is not a primary key. Try again.");
+
+																foreignKey = null; /* Reset */
+
+																referenced_Table = null;
+
+																referenced_Column = null;
+															}
+															else if(!obj_crud_operations.is_ForeignKey_Matching_Existing_PrimaryKey(referenced_Column, referenced_Table, column_Name, TABLE_Name)) /* Validate if this ForeignKey column references a Primary Key */
+															{
+																System.err.println("Error: Foreign Key must reference a Primary Key Column. Try again.");
+
+																foreignKey = null;
+
+																referenced_Table = null;
+
+																referenced_Column = null;
+															}
+
+														}
+														else
+														{
+															System.err.println("Error: Foreign Key requires a referenced table and column.");
+
+															foreignKey = null;
+														}
+													}
+												}
+											}
+
+											System.out.print("Do you want to add another column? (yes/no): ");
+											add_More_Columns = scanner.nextLine().equalsIgnoreCase("yes"); /* "equalIgnoreCase" ensures that "YES"/ "yes"/ "Yes"/ "yEs".... . all are same. */
+
+										} /* End of While loop */
+
+										obj_crud_operations.CREATE_NEW_Table(new_Table_Name, columns, primaryKey, foreignKey, referenced_Table, referenced_Column);
+									}
+								}
+								catch (SQLException e)
+								{
+									System.err.println("Error during Table Creation: " + e.getMessage());
+								}
+								break;
+								
+								
+								
+
+							case 's': /* To Select */
+								System.out.println("Do you want to retrieve all records or filter based on a specific column?");
+								System.out.println("➡ Type 'all' to retrieve all records.");
+								System.out.println("➡ Type 'specific' to retrieve specific records.");
+								System.out.println("➡ Type 'cancel' to Cancel the Retrieval operation.");
+
+								System.out.print("\n Please Enter your choice : ");
+								String user_Input_to_retrieve = scanner.nextLine().trim().toLowerCase();
+
+								if(user_Input_to_retrieve.equalsIgnoreCase("all")) /* "equalIgnoreCase" ensures that "all"/"ALL"/"All"/"alL"..... all are same. */
+								{
+									try
+									{
+										obj_crud_operations.Select_and_Retrieve_Records(TABLE_Name, true, null, null); /* Retrieves all records */
+									}
+									catch (RuntimeException e)
+									{
+										e.printStackTrace();
+									}
+								}
+								else if(user_Input_to_retrieve.equalsIgnoreCase("specific")) /* "equalIgnoreCase" ensures that "specific"/ "SPECIFIC"/ "spEcIFic"/ "SpeCIfiC"... .. all are same. */
+								{
+									try
+									{
+										obj_crud_operations.Display_All_Columns_of_the_Table(TABLE_Name);
+
+										System.out.print("Enter the column name from the above list: ");
+										String column_name = scanner.nextLine().trim(); /* Provide column name present in the table. */
+										/* Accepts Case-insensitive input as well */
+
+										/* Validate the column name */
+										if(!obj_crud_operations.is_Column_Exists(column_name, TABLE_Name))
+										{
+
+											throw new IllegalArgumentException("Invalid column name: " + column_name);
+										}
+
+										obj_crud_operations.Display_Values_of_Each_Column_of_the_Table(column_name, TABLE_Name);
+
+										System.out.print("Enter the value for column '" + column_name + "': ");
+										String column_value = scanner.nextLine().trim(); /* give value of that column */
+										/* Accepts Case-insensitive input as well */
+
+										/* Validate the Value of column */
+										if(!obj_crud_operations.is_Value_of_Column_Exists(column_name, column_value, TABLE_Name))
+										{
+											throw new IllegalArgumentException("Invalid column value: " + column_value);
+										}
+
+										obj_crud_operations.Select_and_Retrieve_Records(TABLE_Name, false, column_name, column_value); /* Retrieves Specific Records */
+									}
+									catch (RuntimeException e)
+									{
+										System.err.println(e.getMessage());
+									}
+									catch (SQLException e)
+									{
+										e.printStackTrace();
+									}
+								}
+								else if(user_Input_to_retrieve.equalsIgnoreCase("cancel")) /* "equalIgnoreCase" ensures that "CANCEL"/"cancel" /"CanCel"/ "canCEL"..... all are same. */
+								{
+									System.out.println("Retrieve operation was cancelled.");
+								}
+								else
+								{
+									System.err.println("Invalid input. Please Enter either 'all', 'specific', or 'cancel'.");
+								}
+								break;
+
+							case 'i': /* To Insert */
+								try
+								{
+									/* Get the column metadata for the table */
+									List<Map<String, String>> columns_in_Table = obj_crud_operations.get_Table_Metadata_to_obtain_Column_info(TABLE_Name);
+
+									/* Pass the necessary parameters to the INSERT_Record method */
+									obj_crud_operations.INSERT_Record(TABLE_Name, columns_in_Table, scanner); /* Call the insert method */
+								}
+								catch (RuntimeException RE)
+								{
+									System.err.println(RE.getMessage());
+								}
+								catch (Exception e)
+								{
+									e.printStackTrace();
+								}
+								break;
+
+							case 'u': /* To Update */
+								String column_To_Update, new_Value, fetch_Column, fetch_Value, proceed_or_not;
+
+								System.out.println("Do you want to update all values in the specified column or update based on a specific column?");
+								System.out.println("➡ Type 'all' to update all values of the column.");
+								System.out.println("➡ Type 'specific' to update specific value of the specified column.");
+								System.out.println("➡ Type 'cancel' to cancel the Update operation.");
+
+								System.out.print("\n Please Enter your choice : ");
+								String user_Input_to_update = scanner.next().trim().toLowerCase();
+								scanner.nextLine();
+
+								if(user_Input_to_update.equalsIgnoreCase("all")) /* "equalIgnoreCase" ensures that "all"/"ALL"/"All"/"alL"..... all are same. */
+								{
+									try
+									{
+										obj_crud_operations.Display_All_Columns_of_the_Table(TABLE_Name);
+
+										do
+										{
+											System.out.print("Enter the column name you want to update: ");
+											column_To_Update = scanner.nextLine().trim();
+											if(column_To_Update.isEmpty())
+											{
+												System.err.println("Column cannot be Empty. Please enter a valid column Name.");
+											}
+										}
+										while (column_To_Update.isEmpty());
+
+										if(!obj_crud_operations.is_Column_Exists(column_To_Update, TABLE_Name))
+										{
+											throw new IllegalArgumentException("Invalid column name: " + column_To_Update);
+										}
+
+										do
+										{
+											System.out.print("Enter the new value for the column to Update the existed value: ");
+											new_Value = scanner.nextLine().trim();
+											if(new_Value.isEmpty())
+											{
+												System.err.println("Value cannot be Empty. Please enter a valid Value.");
+											}
+										}
+										while (new_Value.isEmpty());
+
+										obj_crud_operations.UPDATE_TABLE_Data(TABLE_Name, true, column_To_Update, new_Value, null, null); /* Updates all Rows of that column, since where clause is not there to filter. */
+									}
+									catch (RuntimeException e)
+									{
+										e.printStackTrace();
+									}
+								}
+								else if(user_Input_to_update.equalsIgnoreCase("specific")) /* "equalIgnoreCase" ensures that "specific"/ "SPECIFIC"/ "spEcIFic"/ "SpeCIfiC"... .. all are same. */
+								{
+									try
+									{
+										obj_crud_operations.Display_All_Columns_of_the_Table(TABLE_Name);
+
+										do
+										{
+											System.out.print("Enter the column name you want to update: ");
+											column_To_Update = scanner.nextLine().trim();
+											if(column_To_Update.isEmpty())
+											{
+												System.err.println("Column cannot be Empty. Please enter a valid column Name.");
+											}
+										}
+										while (column_To_Update.isEmpty());
+
+										if(!obj_crud_operations.is_Column_Exists(column_To_Update, TABLE_Name))
+										{
+											throw new IllegalArgumentException("Invalid column name: " + column_To_Update);
+										}
+
+										do
+										{
+											System.out.print("Enter the new value for the column to overwrite the previous value: ");
+											new_Value = scanner.nextLine().trim(); /* Give The new Value to overwrite the previous value. */
+											if(new_Value.isEmpty())
+											{
+												System.err.println("Value cannot be Empty. Please enter a valid Value.");
+											}
+										}
+										while (new_Value.isEmpty());
+										// scanner.nextLine();
+
+										/**
+										 * Here Fetch records filtered by WHERE clause
+										 **/
+										obj_crud_operations.Display_All_Columns_of_the_Table(TABLE_Name);
+
+										do
+										{
+											System.out.print("Enter the column name to fetch the particular record based on that for which record's column we want to overwrite the value : ");
+											fetch_Column = scanner.nextLine().trim();
+											if(fetch_Column.isEmpty())
+											{
+												System.err.println("Where Clause column cannot be empty. Please Enter a valid column.");
+											}
+										}
+										while (fetch_Column.isEmpty());
+
+										if(!obj_crud_operations.is_Column_Exists(fetch_Column, TABLE_Name))
+										{
+											throw new IllegalArgumentException("Invalid WHERE column: " + fetch_Column);
+										}
+
+										obj_crud_operations.Display_Values_of_Each_Column_of_the_Table(fetch_Column, TABLE_Name);
+
+										System.out.println("Please provide the column of the record ");
+										do
+										{
+											System.out.print("Enter the value for the column that need to be fetched for particular record(s) : ");
+											fetch_Value = scanner.nextLine().trim();
+											if(fetch_Value.isEmpty())
+											{
+												System.err.println("Where Clause value cannot be empty. Please Enter a valid value.");
+											}
+										}
+										while (fetch_Value.isEmpty());
+
+										System.out.println("These are the Record(s) that got filtered, These will get updated after Update Operation.");
+										obj_crud_operations.Select_and_Retrieve_Records(TABLE_Name, false, fetch_Column, fetch_Value);
+
+										System.out.println("\nThese are the Record(s) currently exists before Updating value.");
+
+										do
+										{
+											System.out.print("Are you sure you want to modify the data in this particular field (YES/NO): ");
+											proceed_or_not = scanner.nextLine().trim();
+											if(!proceed_or_not.equalsIgnoreCase("YES") && !proceed_or_not.equalsIgnoreCase("NO"))
+											{
+												System.err.println("Invalid input! Please enter either 'YES' or 'NO'.");
+											}
+										}
+										while (!proceed_or_not.equalsIgnoreCase("YES") && !proceed_or_not.equalsIgnoreCase("NO"));
+
+										if(proceed_or_not.equalsIgnoreCase("YES"))
+										{
+											System.out.println("Proceeding with Update Operation.");
+											obj_crud_operations.UPDATE_TABLE_Data(TABLE_Name, false, column_To_Update, new_Value, fetch_Column, fetch_Value);
+										}
+										else
+										{
+											System.out.println("Update operation was stopped.");
+										}
+									}
+									catch (RuntimeException e)
+									{
+										e.printStackTrace();
+									}
+								}
+								else if(user_Input_to_update.equalsIgnoreCase("cancel")) /* "equalIgnoreCase" ensures that "CANCEL"/"cancel" /"CanCel"/ "canCEL"..... all are same. */
+								{
+									System.out.println("Update operation was cancelled.");
+								}
+								else
+								{
+									System.err.println("Invalid Input ! Please Enter either 'all', 'specific', or 'cancel'.");
+								}
+								break;
+
+							case 'd': /* To Delete */
+								System.out.println("Please tell us whether you want to delete All records or any Specific record from the Table? \n");
+								System.out.println("➡ type 'all' to proceed with Deleting all the records as input.");
+								System.out.println("➡ type 'specific' to proceed with Deleting a specified record as input.");
+								System.out.println("➡ type 'cancel' for not to proceed with Deletion operation as input.");
+
+								System.out.print("\n Enter your choice: ");
+								String user_Input_to_delete = scanner.nextLine().trim().toLowerCase();
+
+								if(user_Input_to_delete.equalsIgnoreCase("all")) /* "equalIgnoreCase" ensures that "all"/"ALL"/"All"/"alL"..... all are same. */
+								{
+									try
+									{
+										System.out.print("You really want to delete all records in the Table? (YES/NO) : ");
+
+										String confirm_to_delete = scanner.nextLine().trim().toLowerCase();
+
+										if(confirm_to_delete.equalsIgnoreCase("YES")) /* "equalIgnoreCase" ensures that "YES"/"yes"/"Yes"/ "yEs"..... all are same. */
+										{
+											obj_crud_operations.Delete_Table_Data(TABLE_Name, true, null, null); /* Delete all records */
+
+											System.out.println("All Records have been Successfully Deleted");
+										}
+										else if(confirm_to_delete.equalsIgnoreCase("NO")) /* "equalIgnoreCase" ensures that "NO"/"no"/ "No"/"nO".... . all are same. */
+										{
+											System.out.println("Operation cancelled. No records were deleted.");
+										}
+										else
+										{
+											System.err.println("Invalid input! Deletion aborted.");
+										}
+									}
+									catch (SQLException e)
+									{
+										System.err.println("Error while deleting all records: " + e.getMessage());
+
+										e.printStackTrace();
+
+										throw e;
+									}
+								}
+								else if(user_Input_to_delete.equalsIgnoreCase("specific")) /* "equalIgnoreCase" ensures that "specific"/ "SPECIFIC"/ "spEcIFic"/ "SpeCIfiC"... .. all are same. */
+								{
+									try
+									{
+										/* Fetch and display all column names */
+										obj_crud_operations.Display_All_Columns_of_the_Table(TABLE_Name); /* First Displays all available columns in table */
+
+										System.out.print("Enter te column name from the Above List : ");
+										String column_name = scanner.nextLine(); /* Specific column name in given table provided by the user */
+
+										/* Validate the column name */
+										if(!obj_crud_operations.is_Column_Exists(column_name, TABLE_Name))
+										{
+											throw new IllegalArgumentException("Invalid column name: " + column_name);
+										}
+
+										/* Fetch and display all unique values in the specified column */
+										obj_crud_operations.Display_Values_of_Each_Column_of_the_Table(column_name, TABLE_Name);
+
+										System.out.print("Enter the value of that column '" + column_name + "': ");
+										String column_value = scanner.nextLine().trim(); /* Specific value of column in given table provided by the user */
+
+										/* Validate the value */
+										if(!obj_crud_operations.is_Value_of_Column_Exists(column_name, column_value, TABLE_Name))
+										{
+											throw new RuntimeException("No record found with " + column_name + " = " + column_value);
+										}
+
+										obj_crud_operations.Delete_Table_Data(TABLE_Name, false, column_name, column_value);
+									}
+									catch (RuntimeException e)
+									{
+										System.err.println(e.getMessage());
+									}
+									catch (SQLException e)
+									{
+										e.printStackTrace();
+									}
+								}
+								else if(user_Input_to_delete.equalsIgnoreCase("cancel")) /* "equalIgnoreCase" ensures that "CANCEL"/"cancel" /"CanCel"/ "canCEL"..... all are same. */
+								{
+									System.out.println("Operation cancelled. No Delete Operation Has been Happened");
+								}
+								else
+								{
+									System.err.println("Invalid Input. Please Enter either 'all' or 'specific' or 'cancel'. ");
+								}
+								break;
+
+							case 'e': /* To Exit */
+								System.out.println("Exiting from CRUD Menu. \n");
+
+								TimeUnit.SECONDS.sleep(3);
+
+								obj_crud_operations.closeConnection();
+
+								end_Time = System.currentTimeMillis(); /* Capture End time of Execution before Exiting. */
+
+								elapsed_Time = end_Time - start_Time; /* Calculate Total Execution Time. */
+
+								hours = TimeUnit.MILLISECONDS.toHours(elapsed_Time);
+
+								minutes = TimeUnit.MILLISECONDS.toMinutes(elapsed_Time) % 60;
+
+								seconds = TimeUnit.MILLISECONDS.toSeconds(elapsed_Time) % 60;
+
+								milli_seconds = elapsed_Time % 1000;
+
+								/* Print Execution Time on Console */
+								System.out.printf("\nTotal Execution Time: %02d hrs : %02d min : %02d sec .%03d milliseconds \n", hours, minutes, seconds, milli_seconds);
+
+								/* Delay 5 seconds */
+								CompletableFuture.delayedExecutor(5, TimeUnit.SECONDS).execute(() ->
+								{
+									scanner.close(); /* Close the scanner to avoid resource leak */
+								});
+
+								System.exit(0);
+								break;
+
+							default:
+								System.err.println("Invalid Option! Choose the Correct Necessary Operation.");
+						}
+					}
+					else
+					{
+						System.err.println("Invalid Input! Please choose a character from a to z.");
+					}
+
+				}
+				else
+				{
+					System.err.println("Invalid Input! Please enter exactly one character.");
+				}
+
+			} /* End of while loop for CRUD MENU. */
+
+		} /* End of while loop */
+
+	} /* End of main() method */
+
+} /* End of "Performs_CRUD_on_Gaming_Table" class */

@@ -1,0 +1,6 @@
+INDEX VERSION 1.134+E:\JAVA_Projects\JDBC_MSSQL\JDBC_To_Connect_SSMS_with_Eclipse_using_CRUD_Operations_with_basic_enhancements\.metadata\.plugins\org.eclipse.jdt.core
+1865797976.index
+1288848795.index
+2451985050.index
+2666227375.index
+3597031212.index
