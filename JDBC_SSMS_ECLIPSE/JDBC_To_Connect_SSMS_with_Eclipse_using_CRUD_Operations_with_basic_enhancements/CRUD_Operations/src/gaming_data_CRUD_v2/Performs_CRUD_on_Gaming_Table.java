@@ -16,7 +16,6 @@ import java.sql.SQLException;
  * 
  * In this project, The CRUD operations are used on a Table that has primary key.
  *
- * In this project, we also created option to create new Table.
  **/
 
 public class Performs_CRUD_on_Gaming_Table
