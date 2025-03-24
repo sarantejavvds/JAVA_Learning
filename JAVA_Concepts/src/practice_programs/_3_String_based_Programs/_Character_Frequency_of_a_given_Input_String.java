@@ -2,7 +2,7 @@ package practice_programs._3_String_based_Programs;
 
 import java.util.Scanner;
 
-public class CharacterFrequency 
+public class _Character_Frequency_of_a_given_Input_String 
 {
     public static void main(String[] args) 
     {
@@ -19,12 +19,12 @@ public class CharacterFrequency
         // Loop through each character in the string
         for (int i = 0; i < input.length(); i++) 
         {
-            char c = input.charAt(i);
+            char character_input = input.charAt(i);
             
             // If the character is a letter (ignoring spaces and non-letter characters)
-            if(c >= 'a' && c <= 'z') 
+            if(character_input >= 'a' && character_input <= 'z') 
             {
-                freq[c - 'a']++;  // Increment the frequency of the character
+                freq[character_input - 'a']++;  // Increment the frequency of the character
             }
         }
         
