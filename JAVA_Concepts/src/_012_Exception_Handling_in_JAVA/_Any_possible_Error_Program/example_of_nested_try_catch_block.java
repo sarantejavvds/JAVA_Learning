@@ -15,6 +15,7 @@ public class example_of_nested_try_catch_block
                 // Inner try block 1
                 int n = 10;
                 int res = n / 0;  // This will throw ArithmeticException
+                System.out.println(res);
             }
             catch (ArithmeticException e) 
             {
