@@ -11,9 +11,7 @@ public class _control_to_Console
 		        try {
 		        	Scanner scanner = new Scanner(System.in);
 		            Robot robot = new Robot();
-		            
-		            System.out.print("Enter Something: ");
-		            String any = scanner.nextLine();
+		           
 		            
 
 		            /* Simulate ALT + SHIFT + Q to bring the active window (console) into focus */
@@ -31,13 +29,18 @@ public class _control_to_Console
 		            // release C
 		            robot.keyRelease(KeyEvent.VK_C);
 		            
-		            robot.delay(1000); /* Wait for the console to gain focus */
-		            /* Now Robot focus shifted to Eclipse Console */
-		            
-		            // Now continue with your Robot actions
+		         // Now continue with your Robot actions
 		            System.out.println("Robot is now executing...");
 		            
-		            robot.delay(1000); // Wait for the console to gain focus
+		            System.out.print("Robot Enter Something: ");
+		           // String any = scanner.next();
+		            
+		            robot.delay(2000); /* Wait for the console to gain focus */
+		            /* Now Robot focus shifted to Eclipse Console */
+		            
+		            
+		            
+		            robot.delay(2000); // Wait for the console to gain focus
 		            
 		            robot.keyPress(KeyEvent.VK_H);
 		            robot.keyRelease(KeyEvent.VK_H);
@@ -50,6 +53,10 @@ public class _control_to_Console
 		            robot.keyPress(KeyEvent.VK_O);
 		            robot.keyRelease(KeyEvent.VK_O);
 
+		            robot.keyPress(KeyEvent.VK_ENTER);
+		            robot.keyRelease(KeyEvent.VK_ENTER);
+		            
+		         //   System.out.println("Console output : " + any);
 		        } 
 		        catch (AWTException e) 
 		        {
