@@ -20,6 +20,13 @@ public class Replacing_First_String_Element_in_a_String_Array
 		cars[0] = "new_car_1";
 		
 		System.out.println(cars[0]);
+		
+		System.out.println();
+		
+		for(int i = 0 ; i < cars.length ; i++)
+		{
+		   System.out.println(cars[i]);
+		}
 	}
 
 }

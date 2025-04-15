@@ -6,7 +6,7 @@ class Dog
     
     String breed;
 
-    // Constructor
+    // parameterized Constructor
     public Dog(String name, String breed) 
     {
         this.name = name;

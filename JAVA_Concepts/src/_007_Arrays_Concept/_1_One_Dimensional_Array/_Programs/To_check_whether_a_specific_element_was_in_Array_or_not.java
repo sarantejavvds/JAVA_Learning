@@ -38,7 +38,7 @@ public class To_check_whether_a_specific_element_was_in_Array_or_not
 		}
 		else
 		{
-			System.out.println(check_this_animal+" is not present , test fail");
+			System.err.println(check_this_animal+" is not present , test fail");
 		}
 		
 		scanner.close();

@@ -17,6 +17,9 @@ public class Converting_Object_into_integer
 		int value = (int)x;
 		
 		System.out.println(value);
+		
+		int same_value = Integer.valueOf(x.toString());
+		System.out.println(same_value);
 	}
 
 }
