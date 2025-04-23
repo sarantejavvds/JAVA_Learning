@@ -889,7 +889,7 @@ public class SSMS_Connection
 		return (columns.stream().filter(col -> col.get("COLUMN_NAME").equals(columnName)).findFirst().orElseThrow(() -> new RuntimeException("Column type not found!")).get("TYPE_NAME"));
 	}
 
-	/* Not used */
+	
 	public Map<String, String> _get_ColumnConstraints(String Table_Name) throws SQLException
 	{
 		Map<String, String> constraintsMap = new HashMap<>();
